@@ -8,4 +8,5 @@ urlpatterns = [
     path('', include('shop.urls')),
 ]
 
+# Serve media files (product images, avatars) on Render too
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
