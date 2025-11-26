@@ -1,0 +1,178 @@
+{% extends 'shop/base.html' %}
+{% block title %}My Dashboard - NeoMart{% endblock %}
+{% block content %}
+
+<div class="mt-5 pt-4 dashboard-page">
+
+  <!-- Greeting -->
+  <div class="mb-3 d-flex justify-content-between align-items-center">
+    <div>
+      <h3 class="mb-1">Hi, {{ user.username|title }}</h3>
+      <p class="text-muted small mb-0">Here’s a quick look at your shopping activity.</p>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card stat-card h-100">
+        <div class="card-body py-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted small mb-1">Total Orders</p>
+              <h4 class="mb-0">{{ total_orders }}</h4>
+            </div>
+            <i class="bi bi-bag-check fs-4 text-primary"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card stat-card h-100">
+        <div class="card-body py-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted small mb-1">Total Spent</p>
+              <h4 class="mb-0">₹{{ total_spent }}</h4>
+            </div>
+            <i class="bi bi-currency-rupee fs-4 text-success"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card stat-card h-100">
+        <div class="card-body py-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted small mb-1">Delivered</p>
+              <h4 class="mb-0">{{ delivered_orders }}</h4>
+            </div>
+            <i class="bi bi-truck fs-4 text-info"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card stat-card h-100">
+        <div class="card-body py-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted small mb-1">Pending</p>
+              <h4 class="mb-0">{{ pending_orders }}</h4>
+            </div>
+            <i class="bi bi-hourglass-split fs-4 text-warning"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="row g-3">
+    <!-- Recent Orders -->
+    <div class="col-lg-8">
+      <div class="card summary-card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h6 class="mb-0">Recent Orders</h6>
+          {% if last_order_date %}
+            <small class="text-muted">
+              Last order: {{ last_order_date|date:"d M Y, H:i" }}
+            </small>
+          {% endif %}
+        </div>
+        <div class="card-body p-0">
+          {% if orders %}
+            <div class="table-responsive">
+              <table class="table mb-0 align-middle small">
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for order in orders %}
+                    <tr>
+                      <td class="fw-semibold">{{ order.order_id }}</td>
+                      <td>{{ order.created_at|date:"d M Y" }}</td>
+                      <td>₹{{ order.total_amount }}</td>
+                      <td>
+                        {% if order.status %}
+                          {% if order.status|lower == 'delivered' %}
+                            <span class="badge bg-success-subtle text-success">Delivered</span>
+                          {% elif order.status|lower == 'cancelled' %}
+                            <span class="badge bg-danger-subtle text-danger">Cancelled</span>
+                          {% else %}
+                            <span class="badge bg-warning-subtle text-warning text-dark">Pending</span>
+                          {% endif %}
+                        {% else %}
+                          <span class="badge bg-warning-subtle text-warning text-dark">Processing</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="p-3 text-muted text-center small">
+              <i class="bi bi-bag-x fs-3 d-block mb-1"></i>
+              You haven't placed any orders yet.
+            </div>
+          {% endif %}
+        </div>
+        <div class="card-footer text-end small">
+          <a href="{% url 'my_orders' %}" class="text-decoration-none">
+            View all orders <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Addresses / Account -->
+    <div class="col-lg-4">
+      <div class="card summary-card mb-3">
+        <div class="card-header">
+          <h6 class="mb-0">Saved Addresses</h6>
+        </div>
+        <div class="card-body small">
+          {% if addresses %}
+            {% for addr in addresses %}
+              <div class="mb-2 pb-2 border-bottom border-dashed">
+                <strong>{{ addr.full_name }}</strong><br>
+                {{ addr.flat_house_no }}, {{ addr.address_line }}<br>
+                {% if addr.landmark %}Landmark: {{ addr.landmark }}<br>{% endif %}
+                {{ addr.pincode }}<br>
+                <span class="text-muted">📞 {{ addr.phone }}</span>
+              </div>
+            {% endfor %}
+          {% else %}
+            <p class="text-muted mb-0">No addresses saved yet. You can add one during checkout.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card summary-card">
+        <div class="card-header">
+          <h6 class="mb-0">Account Snapshot</h6>
+        </div>
+        <div class="card-body small">
+          <p class="mb-1"><strong>Username:</strong> {{ user.username }}</p>
+          {% if user.email %}
+          <p class="mb-1"><strong>Email:</strong> {{ user.email }}</p>
+          {% endif %}
+          <p class="mb-1"><strong>Member since:</strong> {{ user.date_joined|date:"d M Y" }}</p>
+          <p class="mb-0 text-muted">Manage your orders, addresses and preferences from here.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

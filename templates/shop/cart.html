@@ -1,0 +1,214 @@
+{% extends 'shop/base.html' %}
+{% block title %}Cart - NeoMart{% endblock %}
+{% block content %}
+
+<div class="mt-5 pt-4 cart-page">
+  <div class="row g-4">
+
+    <!-- LEFT: CART ITEMS -->
+    <div class="col-lg-8">
+      <div class="card cart-card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="bi bi-cart3 me-2"></i>Your Cart</h5>
+          <small class="text-muted">{{ total_items }} items</small>
+        </div>
+        <div class="card-body p-0">
+          {% if cart_items %}
+            <ul class="list-group list-group-flush">
+              {% for item in cart_items %}
+                <li class="list-group-item py-3">
+                  <div class="d-flex align-items-center gap-3">
+
+                    <!-- FIXED-SIZE THUMBNAIL -->
+                    <div class="cart-thumb">
+                      {% if item.product.image %}
+                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                      {% else %}
+                        <div class="product-placeholder mini mb-0">
+                          <i class="bi bi-box-seam"></i>
+                        </div>
+                      {% endif %}
+                    </div>
+
+                    <!-- TEXT + ACTIONS -->
+                    <div class="flex-grow-1">
+                      <div class="d-flex justify-content-between">
+                        <div>
+                          <h6 class="mb-1">{{ item.product.name }}</h6>
+                          <!-- use a simple badge, not the absolute-position category-badge -->
+                          <span class="badge cart-category-badge">
+                            {{ item.product.category.name }}
+                          </span>
+                        </div>
+                        <form method="post" action="{% url 'remove_from_cart' item.id %}">
+                          {% csrf_token %}
+                          <button class="btn btn-link text-danger btn-sm p-0">
+                            <i class="bi bi-trash"></i>
+                          </button>
+                        </form>
+                      </div>
+
+                      <div class="d-flex justify-content-between align-items-center mt-2">
+                        <form method="post"
+                              action="{% url 'update_cart_item' item.id %}"
+                              class="d-flex align-items-center gap-2">
+                          {% csrf_token %}
+                          <input type="number"
+                                 name="quantity"
+                                 min="1"
+                                 value="{{ item.quantity }}"
+                                 class="form-control form-control-sm qty-input">
+                          <button class="btn btn-soft btn-sm">Update</button>
+                        </form>
+
+                        <div class="text-end">
+                          <div class="small text-muted">
+                            Price:
+                            ₹{% if item.variant %}{{ item.variant.price }}{% else %}{{ item.product.price }}{% endif %}
+                          </div>
+                          {% if item.variant %}
+                            <div class="small text-muted">
+                              {{ item.variant.variant_type.name }}: {{ item.variant.value }}
+                            </div>
+                          {% endif %}
+                          <div class="fw-semibold mt-1">Subtotal: ₹{{ item.subtotal }}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="p-4 text-center text-muted">
+              <i class="bi bi-cart-x fs-2 mb-2 d-block"></i>
+              Your cart is empty. Start adding some products!
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: ORDER SUMMARY -->
+    <div class="col-lg-4">
+      <div class="card summary-card sticky-summary">
+        <div class="card-header">
+          <h6 class="mb-0">Order Summary</h6>
+        </div>
+        <div class="card-body small">
+
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">Items ({{ total_items }})</span>
+            <span class="fw-semibold">₹{{ subtotal }}</span>
+          </div>
+
+          {% if bulk_discount > 0 %}
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">Bulk Discount</span>
+            <span class="text-success">-₹{{ bulk_discount }}</span>
+          </div>
+          {% endif %}
+
+          {% if coupon_discount > 0 %}
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">
+              Coupon Discount{% if coupon_code %} ({{ coupon_code }}){% endif %}
+            </span>
+            <span class="text-success">-₹{{ coupon_discount }}</span>
+          </div>
+          {% endif %}
+
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">Estimated GST (18%)</span>
+            <span>₹{{ gst_estimate }}</span>
+          </div>
+
+          <hr class="my-2">
+
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="d-flex align-items-center gap-1">
+              <i class="bi bi-truck"></i>
+              <span class="small text-muted">Delivery</span>
+            </div>
+            <span class="small fw-semibold">{{ estimated_delivery }}</span>
+          </div>
+
+          <div class="d-flex justify-content-between mb-3">
+            <span class="fw-semibold">Total Payable</span>
+            <span class="fw-bold fs-5">₹{{ total }}</span>
+          </div>
+
+          <!-- Apply Coupon Button (opens modal) -->
+          <button type="button"
+                  class="btn btn-soft w-100 mb-2"
+                  data-bs-toggle="modal"
+                  data-bs-target="#couponModal">
+            <i class="bi bi-ticket-perforated me-1"></i> Apply Coupon
+          </button>
+
+          <a href="{% url 'checkout' %}"
+             class="btn btn-hero-primary w-100 mb-2"
+             {% if not cart_items %}disabled{% endif %}>
+            Proceed to Checkout
+          </a>
+
+          <a href="{% url 'product_list' %}" class="btn btn-outline-secondary w-100 btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Continue Shopping
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- COUPON MODAL (Gradient / Glass style) -->
+<div class="modal fade" id="couponModal" tabindex="-1" aria-labelledby="couponModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content coupon-modal">
+      <div class="modal-header border-0">
+        <h5 class="modal-title d-flex align-items-center gap-2" id="couponModalLabel">
+          <i class="bi bi-ticket-perforated"></i>
+          Apply Coupon
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body pt-0">
+
+        <form method="post" action="{% url 'cart' %}" class="mb-3">
+          {% csrf_token %}
+          <div class="input-group">
+            <input type="text"
+                   name="coupon_code"
+                   class="form-control"
+                   placeholder="Enter coupon (NEO10 / FLAT100)"
+                   value="{{ coupon_code }}">
+            <button class="btn btn-hero-primary" type="submit">Apply</button>
+          </div>
+        </form>
+
+        <div class="coupon-suggestions small">
+          <div class="mb-2 fw-semibold">Available Coupons</div>
+
+          <div class="coupon-pill mb-2">
+            <span class="badge rounded-pill bg-light text-dark me-2">NEO10</span>
+            Get <strong>10% OFF</strong> on your cart total.
+          </div>
+
+          <div class="coupon-pill mb-2">
+            <span class="badge rounded-pill bg-light text-dark me-2">FLAT100</span>
+            Save <strong>₹100</strong> instantly on orders above ₹499.
+          </div>
+
+          <p class="text-muted mb-0 mt-2">
+            <i class="bi bi-info-circle me-1"></i>Only one coupon can be applied at a time.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'shop/base.html' %}
+{% block title %}Register | NeoMart{% endblock %}
+
+{% block content %}
+
+<div class="container" style="min-height: 80vh; padding-top: 120px;">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+
+      <div class="card shadow-sm border-0" style="border-radius: 18px;">
+        <div class="card-body p-4">
+
+          <!-- Title -->
+          <div class="text-center mb-3">
+            <div class="avatar-circle lg mb-2">
+              <i class="bi bi-person-plus-fill fs-3"></i>
+            </div>
+            <h4 class="fw-bold mb-1">Create an Account</h4>
+            <p class="text-muted small">Join NeoMart to enjoy seamless shopping</p>
+          </div>
+
+          <!-- Form -->
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% for field in form %}
+              <div class="mb-3">
+                <label class="form-label small fw-semibold">{{ field.label }}</label>
+
+                <input
+                  type="{{ field.field.widget.input_type }}"
+                  name="{{ field.name }}"
+                  class="form-control"
+                  placeholder="Enter {{ field.label|lower }}"
+                  value="{{ field.value|default:'' }}"
+                  required
+                >
+
+                {% if field.errors %}
+                  <div class="invalid-feedback d-block small">
+                    {{ field.errors|striptags }}
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+
+            <button type="submit" class="btn btn-primary w-100 mt-2" style="border-radius: 10px;">
+              <i class="bi bi-person-check me-2"></i>Register
+            </button>
+          </form>
+
+          <div class="text-center mt-3 small">
+            Already have an account?
+            <a href="{% url 'login' %}" class="fw-semibold">Login</a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'shop/base.html' %}{% block title %}Checkout - NeoMart{% endblock %}{% block content %}
+<div class="mt-5 pt-4 checkout-page">
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0"><i class="bi bi-geo-alt me-2"></i>Delivery Address</h5>
+        </div>
+        <div class="card-body">
+          <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="row g-3">
+              <div class="col-md-6"><label class="form-label small">Full Name</label>{{ form.full_name }}</div>
+              <div class="col-md-6"><label class="form-label small">Phone Number</label>{{ form.phone }}</div>
+              <div class="col-md-6"><label class="form-label small">Email</label>{{ form.email }}</div>
+              <div class="col-md-6"><label class="form-label small">Pincode</label>{{ form.pincode }}</div>
+              <div class="col-md-6"><label class="form-label small">Flat / House No</label>{{ form.flat_house_no }}</div>
+              <div class="col-md-6"><label class="form-label small">Landmark (Optional)</label>{{ form.landmark }}</div>
+              <div class="col-12"><label class="form-label small">Address</label>{{ form.address_line }}</div>
+            </div>
+            <button type="submit" class="btn btn-hero-primary mt-3">
+              <i class="bi bi-bag-check me-2"></i>Place Order
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="card summary-card">
+        <div class="card-header"><h6 class="mb-0">Order Summary</h6></div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush mb-3">
+            {% for item in cart_items %}
+              <li class="list-group-item d-flex justify-content-between align-items-center small">
+                <span>{{ item.product.name|truncatechars:30 }} × {{ item.quantity }}</span>
+                <span>₹{{ item.subtotal }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted small">Items ({{ total_items }})</span>
+            <span class="fw-semibold">₹{{ total|add:bulk_discount }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted small">Bulk Discount</span>
+            <span class="text-success">-₹{{ bulk_discount }}</span>
+          </div>
+          <hr>
+          <div class="d-flex justify-content-between mb-3">
+            <span class="fw-semibold">Total Payable</span>
+            <span class="fw-bold">₹{{ total }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends 'shop/base.html' %}
+{% block title %}Compare Products - NeoMart{% endblock %}
+{% block content %}
+
+<div class="mt-5 pt-4 compare-page">
+  <h3 class="mb-3">Compare Products</h3>
+
+  {% if products %}
+    <div class="table-responsive">
+      <table class="table table-bordered align-middle compare-table">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Feature</th>
+            {% for p in products %}
+              <th scope="col" class="text-center">
+                {{ p.name|truncatechars:30 }}<br>
+                <form method="post" action="{% url 'remove_from_compare' p.id %}">
+                  {% csrf_token %}
+                  <button class="btn btn-link text-danger btn-sm p-0">Remove</button>
+                </form>
+              </th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Image</th>
+            {% for p in products %}
+              <td class="text-center">
+                {% if p.image %}
+                  <img src="{{ p.image.url }}" alt="{{ p.name }}" style="max-height:80px; object-fit:contain;">
+                {% else %}
+                  <div class="product-placeholder mini mb-0"><i class="bi bi-box-seam"></i></div>
+                {% endif %}
+              </td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <th scope="row">Price</th>
+            {% for p in products %}
+              <td>₹{{ p.price }}</td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <th scope="row">Category</th>
+            {% for p in products %}
+              <td>{{ p.category.name }}</td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <th scope="row">Rating</th>
+            {% for p in products %}
+              <td>
+                <span class="rating-stars sm"><span class="stars-fill" style="--rating: {{ p.rating|default:4.5 }}"></span></span>
+              </td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <th scope="row">Stock</th>
+            {% for p in products %}
+              <td>
+                {% if p.stock > 0 %}
+                  <span class="badge bg-success-subtle text-success">In Stock ({{ p.stock }})</span>
+                {% else %}
+                  <span class="badge bg-danger-subtle text-danger">Out of Stock</span>
+                {% endif %}
+              </td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <th scope="row">Description</th>
+            {% for p in products %}
+              <td class="small text-muted">{{ p.short_description|default:p.description|truncatechars:120 }}</td>
+            {% endfor %}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-muted">No products in compare list. Go add some from product listing.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends 'shop/base.html' %}{% block title %}{{ product.name }} - NeoMart{% endblock %}{% block content %}
+<div class="mt-5 pt-4 product-detail-page">
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <div class="product-detail-image card">
+        {% if product.image %}
+          <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid">
+        {% else %}
+          <div class="product-placeholder detail mb-0"><i class="bi bi-box-seam"></i></div>
+        {% endif %}
+        <span class="badge category-badge detail">{{ product.category.name }}</span>
+      </div>
+    </div>
+    <div class="col-lg-7">
+      <div class="card product-detail-card">
+        <div class="card-body">
+          <h2 class="product-detail-title mb-2">{{ product.name }}</h2>
+          <div class="d-flex align-items-center mb-2">
+            <span class="rating-stars lg me-2"><span class="stars-fill" style="--rating: {{ product.rating|default:4.5 }};"></span></span>
+            <small class="text-muted">{{ product.rating|floatformat:1 }} / 5.0 rating</small>
+          </div>
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <span class="product-detail-price">₹{{ product.price }}</span>
+          </div>
+          <div class="mb-3">
+            {% if product.stock > 0 %}
+              <span class="badge bg-success-subtle text-success"><i class="bi bi-check2-circle me-1"></i>In Stock</span>
+              <small class="text-muted ms-2">{{ product.stock }} units left</small>
+            {% else %}
+              <span class="badge bg-danger-subtle text-danger"><i class="bi bi-x-circle me-1"></i>Out of Stock</span>
+            {% endif %}
+          </div>
+          <p class="product-detail-description mb-4">{{ product.description|default:"Premium curated quality product." }}</p>
+          <div class="d-flex flex-wrap gap-2 mb-4">
+            <a href="{% url 'add_to_cart' product.id %}" class="btn btn-hero-primary flex-grow-1">
+              <i class="bi bi-cart-plus me-2"></i>Add to Cart
+            </a>
+            <a href="{% url 'checkout' %}" class="btn btn-hero-outline flex-grow-1">
+              <i class="bi bi-lightning me-2"></i>Buy Now
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

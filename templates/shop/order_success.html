@@ -1,0 +1,52 @@
+{% extends 'shop/base.html' %}
+{% block title %}Order Placed - NeoMart{% endblock %}
+{% block content %}
+
+<div class="mt-5 pt-5 d-flex justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="card summary-card text-center p-4">
+
+      <!-- Animated Success Icon -->
+      <div class="order-success-icon mx-auto mb-3">
+        <div class="checkmark-circle">
+          <div class="checkmark draw"></div>
+        </div>
+      </div>
+
+      <h3 class="mb-2">Order Placed Successfully!</h3>
+      <p class="text-muted mb-3">Thank you for shopping with NeoMart.</p>
+
+      <div class="order-success-details text-start mx-auto mb-3" style="max-width: 420px;">
+        <p class="mb-1">
+          <strong>Order ID:</strong>
+          <span class="text-monospace">{{ order.order_id }}</span>
+        </p>
+        <p class="mb-1">
+          <strong>Total Amount:</strong>
+          ₹{{ order.total_amount }}
+        </p>
+        <p class="mb-1 d-flex align-items-center gap-2">
+          <strong class="mb-0">Estimated Delivery:</strong>
+          <span class="badge bg-success-subtle text-success">
+            <i class="bi bi-truck me-1"></i>{{ estimated_delivery }}
+          </span>
+        </p>
+        <p class="text-muted small mt-2 mb-0">
+          A confirmation has been recorded in your orders section. You can track your order anytime.
+        </p>
+      </div>
+
+      <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+        <a href="{% url 'my_orders' %}" class="btn btn-hero-primary">
+          <i class="bi bi-bag-check me-1"></i> View My Orders
+        </a>
+        <a href="{% url 'product_list' %}" class="btn btn-outline-secondary">
+          <i class="bi bi-shop-window me-1"></i> Continue Shopping
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

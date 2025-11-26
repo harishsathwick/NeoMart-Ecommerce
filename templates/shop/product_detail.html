@@ -1,0 +1,377 @@
+{% extends 'shop/base.html' %}
+{% block title %}{{ product.name }} - NeoMart{% endblock %}
+
+{% block content %}
+
+<div class="mt-5 pt-4 product-detail-page">
+  <div class="row g-4">
+
+    <!-- LEFT: IMAGE GALLERY WITH THUMBNAILS -->
+    <div class="col-lg-5">
+      <div class="card product-detail-image position-relative">
+
+        <!-- Wishlist Button -->
+        <a href="{% url 'add_to_wishlist' product.id %}" class="wishlist-btn">
+          <i class="bi bi-heart{% if wishlist_ids and product.id in wishlist_ids %}-fill text-danger{% endif %}"></i>
+        </a>
+
+        <!-- Main Image (click to zoom) -->
+        {% if product.image %}
+          <img src="{{ product.image.url }}"
+               alt="{{ product.name }}"
+               class="img-fluid main-image zoom-img pd-main-image"
+               data-bs-toggle="modal"
+               data-bs-target="#imageZoomModal">
+        {% else %}
+          <div class="product-placeholder detail mb-0 pd-main-image"
+               data-bs-toggle="modal"
+               data-bs-target="#imageZoomModal">
+            <i class="bi bi-box-seam"></i>
+          </div>
+        {% endif %}
+
+        <span class="badge category-badge detail">{{ product.category.name }}</span>
+
+        <div class="zoom-hint small text-muted position-absolute bottom-0 end-0 m-2 d-flex align-items-center gap-1">
+          <i class="bi bi-arrows-fullscreen"></i>
+          <span>Click to zoom</span>
+        </div>
+      </div>
+
+      <!-- Thumbnails Row -->
+      <div class="d-flex gap-2 mt-2 flex-wrap">
+        {% if product.image %}
+          <div class="detail-thumb pd-thumb active"
+               data-large="{{ product.image.url }}">
+            <img src="{{ product.image.url }}" alt="{{ product.name }} thumb">
+          </div>
+        {% endif %}
+        {% for img in extra_images %}
+          <div class="detail-thumb pd-thumb"
+               data-large="{{ img.image.url }}">
+            <img src="{{ img.image.url }}" alt="{{ product.name }} extra">
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- RIGHT: PRODUCT INFO -->
+    <div class="col-lg-7">
+      <div class="card product-detail-card sticky-card">
+        <div class="card-body">
+
+          <h2 class="product-detail-title mb-1">{{ product.name }}</h2>
+
+          <div class="d-flex align-items-center mb-2">
+            <span class="rating-stars lg me-2">
+              <span class="stars-fill"
+                    style="--rating: {{ avg_rating|default:product.rating|default:4.5 }};">
+              </span>
+            </span>
+            <small class="text-muted">
+              {{ avg_rating|default:product.rating|default:4.5 }} / 5.0 rating
+            </small>
+          </div>
+
+          <!-- PRICE (dynamic with variant) -->
+          <h3 class="product-detail-price my-3"
+              id="product-price"
+              data-base-price="{{ product.price }}">
+            ₹{{ product.price }}
+          </h3>
+
+          <!-- VARIANT SELECTORS -->
+          {% if variants %}
+            {% regroup variants by variant_type as variant_groups %}
+
+            {% for group in variant_groups %}
+              <div class="mb-2">
+                <div class="small text-muted text-uppercase fw-semibold">
+                  {{ group.grouper.name }}
+                </div>
+                <div class="d-flex flex-wrap gap-2 mt-1">
+                  {% for v in group.list %}
+                    <button type="button"
+                            class="btn btn-outline-secondary btn-sm variant-option"
+                            data-variant-id="{{ v.id }}"
+                            data-variant-price="{{ v.price }}">
+                      {{ v.value }}
+                    </button>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endfor %}
+          {% endif %}
+
+          <div class="mb-3 mt-2">
+            {% if product.stock > 0 %}
+              <span class="badge bg-success-subtle text-success">
+                <i class="bi bi-check2-circle me-1"></i>In Stock
+              </span>
+              <small class="text-muted ms-2">{{ product.stock }} units left</small>
+            {% else %}
+              <span class="badge bg-danger-subtle text-danger">
+                <i class="bi bi-x-circle me-1"></i>Out of Stock
+              </span>
+            {% endif %}
+          </div>
+
+          <hr>
+
+          <h6 class="fw-bold mb-2">Description</h6>
+          <p class="product-detail-description text-muted">
+            {{ product.description|default:"Premium curated quality product." }}
+          </p>
+
+          <!-- ACTION BUTTONS -->
+          <div class="d-flex flex-wrap gap-2 mt-4">
+            <!-- Add to cart will be controlled by JS to attach ?variant=id -->
+            <a href="#"
+               id="add-to-cart-btn"
+               data-base-url="{% url 'add_to_cart' product.id %}"
+               class="btn btn-hero-primary flex-grow-1">
+              <i class="bi bi-cart-plus me-2"></i>Add to Cart
+            </a>
+
+            <a href="{% url 'checkout' %}" class="btn btn-hero-outline flex-grow-1">
+              <i class="bi bi-lightning me-2"></i>Buy Now
+            </a>
+
+            <form method="post" action="{% url 'add_to_compare' product.id %}">
+              {% csrf_token %}
+              <button class="btn btn-outline-primary" type="submit">
+                <i class="bi bi-arrow-left-right me-1"></i> Compare
+              </button>
+            </form>
+          </div>
+
+          <!-- REVIEWS SECTION -->
+          <hr class="my-4">
+
+          <h5 class="mb-3">Customer Reviews</h5>
+
+          {% if user.is_authenticated and form %}
+            <form method="post" class="mb-4">
+              {% csrf_token %}
+              <div class="row g-2 mb-2">
+                <div class="col-md-3">
+                  <label class="form-label small">Rating (1–5)</label>
+                  {{ form.rating }}
+                </div>
+                <div class="col-md-9">
+                  <label class="form-label small">Review</label>
+                  {{ form.comment }}
+                </div>
+              </div>
+              <button class="btn btn-hero-primary mt-1">
+                <i class="bi bi-send"></i> Submit Review
+              </button>
+            </form>
+          {% elif not user.is_authenticated %}
+            <p class="small text-muted">Login to write a review.</p>
+          {% endif %}
+
+          {% if reviews %}
+            {% for r in reviews %}
+              <div class="border rounded p-3 mb-2 small">
+                <div class="d-flex justify-content-between">
+                  <strong>{{ r.user.username|title }}</strong>
+                  <span class="rating-stars sm">
+                    <span class="stars-fill" style="--rating: {{ r.rating }}"></span>
+                  </span>
+                </div>
+                <p class="mb-1">{{ r.comment }}</p>
+                <span class="text-muted">{{ r.created_at|date:"d M Y" }}</span>
+              </div>
+            {% endfor %}
+          {% else %}
+            <p class="text-muted">No reviews yet. Be the first!</p>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RECOMMENDED PRODUCTS -->
+  <div class="mt-5">
+    <h4 class="mb-3">Recommended for you</h4>
+    <div class="row g-3">
+      {% for item in recommended_products %}
+        <div class="col-6 col-md-4 col-lg-3">
+          <div class="product-card card h-100">
+            <div class="product-card-img">
+              {% if item.image %}
+                <img src="{{ item.image.url }}" alt="{{ item.name }}">
+              {% else %}
+                <div class="product-placeholder"><i class="bi bi-box-seam"></i></div>
+              {% endif %}
+            </div>
+            <div class="card-body">
+              <h6 class="product-title">{{ item.name|truncatechars:30 }}</h6>
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="product-price">₹{{ item.price }}</span>
+                <a href="{% url 'product_detail' item.slug %}" class="btn btn-outline-secondary btn-sm">
+                  <i class="bi bi-eye"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <p class="text-muted">No recommended items available.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- RECENTLY VIEWED -->
+  {% if recently_viewed_products %}
+    <div class="mt-5">
+      <h5 class="mb-3">Your Recently Viewed</h5>
+      <div class="row g-3">
+        {% for item in recently_viewed_products %}
+          <div class="col-6 col-md-3 col-lg-2">
+            <div class="product-card card h-100">
+              <div class="product-card-img">
+                {% if item.image %}
+                  <img src="{{ item.image.url }}" alt="{{ item.name }}">
+                {% else %}
+                  <div class="product-placeholder"><i class="bi bi-box-seam"></i></div>
+                {% endif %}
+              </div>
+              <div class="card-body p-2">
+                <h6 class="product-title mb-1 small">{{ item.name|truncatechars:18 }}</h6>
+                <span class="product-price small fw-semibold">₹{{ item.price }}</span>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+
+<!-- FULLSCREEN ZOOM MODAL WITH CAROUSEL -->
+<div class="modal fade" id="imageZoomModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content bg-dark border-0">
+      <div class="modal-header border-0">
+        <h6 class="modal-title text-light d-flex align-items-center gap-2">
+          <i class="bi bi-arrows-fullscreen"></i> Image Viewer
+        </h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body py-2">
+        <div id="zoomCarousel" class="carousel slide" data-bs-ride="false">
+          <div class="carousel-inner text-center">
+
+            {% if product.image %}
+              <div class="carousel-item active">
+                <img src="{{ product.image.url }}" class="d-block w-100 zoom-modal-img" alt="{{ product.name }}">
+              </div>
+            {% endif %}
+
+            {% for img in extra_images %}
+              <div class="carousel-item{% if not product.image and forloop.first %} active{% endif %}">
+                <img src="{{ img.image.url }}" class="d-block w-100 zoom-modal-img" alt="{{ product.name }} extra">
+              </div>
+            {% endfor %}
+
+          </div>
+
+          {% if product.image or extra_images %}
+            <button class="carousel-control-prev" type="button" data-bs-target="#zoomCarousel" data-bs-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#zoomCarousel" data-bs-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Next</span>
+            </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  /* ---------- IMAGE THUMB SWITCHING ---------- */
+  const mainImage = document.querySelector('.pd-main-image');
+  const thumbs = document.querySelectorAll('.pd-thumb');
+
+  if (mainImage && thumbs.length > 0) {
+    thumbs.forEach(function (thumb) {
+      thumb.addEventListener('click', function () {
+        const largeUrl = this.dataset.large;
+        if (largeUrl) {
+          if (mainImage.tagName.toLowerCase() === 'img') {
+            mainImage.src = largeUrl;
+          } else {
+            mainImage.style.backgroundImage = 'url(' + largeUrl + ')';
+          }
+          thumbs.forEach(t => t.classList.remove('active'));
+          this.classList.add('active');
+        }
+      });
+    });
+  }
+
+  /* ---------- VARIANT SELECTION + PRICE UPDATE ---------- */
+  const priceEl = document.getElementById('product-price');
+  const variantButtons = document.querySelectorAll('.variant-option');
+  const addToCartBtn = document.getElementById('add-to-cart-btn');
+
+  let basePrice = null;
+  if (priceEl && priceEl.dataset.basePrice) {
+    basePrice = parseFloat(priceEl.dataset.basePrice);
+  }
+
+  let selectedVariantId = null;
+
+  variantButtons.forEach(btn => {
+    btn.addEventListener('click', function () {
+      // Active UI state
+      variantButtons.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+
+      // Update selected variant
+      selectedVariantId = this.dataset.variantId;
+      const variantPrice = parseFloat(this.dataset.variantPrice);
+
+      if (priceEl) {
+        if (!isNaN(variantPrice)) {
+          priceEl.textContent = '₹' + variantPrice;
+        } else if (!isNaN(basePrice)) {
+          priceEl.textContent = '₹' + basePrice;
+        }
+      }
+    });
+  });
+
+  /* ---------- ADD TO CART WITH VARIANT ---------- */
+  if (addToCartBtn) {
+    addToCartBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      const baseUrl = this.dataset.baseUrl || this.getAttribute('href') || '#';
+      let targetUrl = baseUrl;
+
+      if (selectedVariantId) {
+        const sep = baseUrl.includes('?') ? '&' : '?';
+        targetUrl = `${baseUrl}${sep}variant=${selectedVariantId}`;
+      }
+
+      if (targetUrl && targetUrl !== '#') {
+        window.location.href = targetUrl;
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

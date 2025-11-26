@@ -1,0 +1,252 @@
+{% extends 'shop/base.html' %}
+{% block title %}NeoMart - Home{% endblock %}
+
+{% block content %}
+<div class="mt-5 pt-4">
+
+  <!-- HERO + HOT DEALS -->
+  <div class="row g-4 align-items-stretch">
+    <!-- Hero Section -->
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm" style="border-radius: 24px; overflow: hidden;">
+        <div class="row g-0">
+          <div class="col-md-7 p-4 d-flex flex-column justify-content-center">
+            <span class="badge bg-warning-subtle text-warning mb-2">
+              <i class="bi bi-lightning-charge-fill me-1"></i> Today’s Highlight
+            </span>
+            <h1 class="fw-bold mb-3" style="font-size: clamp(1.8rem, 2.6vw, 2.4rem);">
+              Upgrade your <span class="text-primary">shopping experience</span> with NeoMart.
+            </h1>
+            <p class="text-muted mb-4">
+              Discover curated electronics, fashion and home essentials with a clean interface,
+              quick checkout and beautiful analytics-ready UI.
+            </p>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              <a href="{% url 'product_list' %}" class="btn btn-primary px-4">
+                <i class="bi bi-bag-heart me-2"></i>Start Shopping
+              </a>
+              {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary px-3">
+                  <i class="bi bi-speedometer2 me-2"></i>Go to Dashboard
+                </a>
+              {% else %}
+                <a href="{% url 'register' %}" class="btn btn-outline-secondary px-3">
+                  <i class="bi bi-person-plus me-2"></i>Create Account
+                </a>
+              {% endif %}
+            </div>
+            <div class="d-flex flex-wrap gap-3 small text-muted">
+              <span><i class="bi bi-shield-check me-1"></i>Secure payments</span>
+              <span><i class="bi bi-truck me-1"></i>Fast delivery</span>
+              <span><i class="bi bi-arrow-repeat me-1"></i>Easy returns</span>
+            </div>
+          </div>
+          <div class="col-md-5 d-none d-md-block">
+            <div class="h-100 w-100 position-relative" style="background: radial-gradient(circle at top, rgba(99,102,241,.2), transparent 60%);">
+              <div class="position-absolute top-50 start-50 translate-middle text-center">
+                <div class="rounded-circle border border-2 border-primary-subtle d-inline-flex align-items-center justify-content-center mb-3" style="width: 140px; height: 140px;">
+                  <i class="bi bi-bag-check-fill fs-1 text-primary"></i>
+                </div>
+                <p class="mb-1 fw-semibold">Premium UI E-Commerce</p>
+                <small class="text-muted">Built with Django + Bootstrap 5</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hot Deals Ribbon -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0 h-100" style="border-radius: 24px;">
+        <div class="card-body d-flex flex-column">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <span class="badge bg-danger-subtle text-danger mb-1">
+                <i class="bi bi-fire me-1"></i>Hot Deals
+              </span>
+              <div class="small text-muted">Limited time offers picked for you</div>
+            </div>
+            <a href="{% url 'product_list' %}" class="small text-decoration-none">
+              View all <i class="bi bi-arrow-right-short"></i>
+            </a>
+          </div>
+
+          <div class="flex-grow-1" style="max-height: 260px; overflow-y: auto;">
+            {% if hot_deals %}
+              {% for p in hot_deals %}
+                <a href="{% url 'product_detail' p.slug %}" class="d-flex align-items-center mb-2 p-2 rounded-3 text-decoration-none"
+                   style="background: rgba(148,163,184,.06);">
+                  <div class="me-3" style="width: 48px; height: 48px; border-radius: 16px; overflow: hidden; background: rgba(148,163,184,.18);">
+                    {% if p.image %}
+                      <img src="{{ p.image.url }}" alt="{{ p.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                      <div class="d-flex align-items-center justify-content-center h-100 text-muted">
+                        <i class="bi bi-image"></i>
+                      </div>
+                    {% endif %}
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between">
+                      <span class="small fw-semibold text-body">{{ p.name|truncatechars:26 }}</span>
+                      <span class="small fw-bold text-success">₹{{ p.price }}</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 mt-1">
+                      <span class="rating-stars" style="--rating: {{ p.rating|default:4.5 }};"></span>
+                      <span class="badge bg-danger-subtle text-danger rounded-pill small">
+                        <i class="bi bi-lightning me-1"></i>Hot
+                      </span>
+                    </div>
+                  </div>
+                </a>
+              {% endfor %}
+            {% else %}
+              <!-- Skeleton for empty hot deals -->
+              {% for _ in "123" %}
+                <div class="mb-2">
+                  <div class="placeholder-glow">
+                    <span class="placeholder col-3 me-2"></span>
+                    <span class="placeholder col-7"></span>
+                  </div>
+                </div>
+              {% endfor %}
+              <small class="text-muted">Add products in admin and mark them as “Hot deal” to show them here.</small>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP DEALS HORIZONTAL SECTION -->
+  <section class="mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="section-title mb-0">
+        <i class="bi bi-stars me-2 text-warning"></i>Top Deals
+      </h2>
+      <a href="{% url 'product_list' %}" class="btn btn-sm btn-outline-secondary">
+        View all products
+      </a>
+    </div>
+
+    {% if top_deals %}
+      <div class="row flex-nowrap g-3 overflow-auto">
+        {% for p in top_deals %}
+          <div class="col-8 col-sm-6 col-md-4 col-lg-3">
+            <div class="product-card card h-100">
+              <div class="product-card-img">
+                {% if p.image %}
+                  <img src="{{ p.image.url }}" alt="{{ p.name }}">
+                {% else %}
+                  <div class="product-placeholder">
+                    <i class="bi bi-box-seam"></i>
+                  </div>
+                {% endif %}
+                <span class="badge category-badge">{{ p.category.name }}</span>
+              </div>
+              <div class="card-body d-flex flex-column">
+                <h6 class="product-title">{{ p.name|truncatechars:30 }}</h6>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="product-price">₹{{ p.price }}</span>
+                  <span class="rating-stars sm" style="--rating: {{ p.rating|default:4.5 }};"></span>
+                </div>
+                <p class="small text-muted mb-3">{{ p.short_description|default:"Premium curated product."|truncatechars:60 }}</p>
+                <div class="mt-auto d-flex gap-2">
+                  <a href="{% url 'add_to_cart' p.id %}" class="btn btn-soft btn-sm flex-grow-1">
+                    <i class="bi bi-cart-plus me-1"></i>Add
+                  </a>
+                  <a href="{% url 'product_detail' p.slug %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-muted small">Mark some products as “Top deal” to display them here.</p>
+    {% endif %}
+  </section>
+
+  <!-- TRENDING / ALL PRODUCTS GRID -->
+  <section class="mt-5 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="section-title mb-0">
+        <i class="bi bi-grid-3x3-gap me-2 text-primary"></i>Trending Products
+      </h2>
+      <a href="{% url 'product_list' %}" class="small text-decoration-none">
+        View all <i class="bi bi-arrow-right-short"></i>
+      </a>
+    </div>
+
+    <div class="row g-3">
+      {% if latest_products %}
+        {% for p in latest_products %}
+          <div class="col-6 col-md-4 col-lg-3">
+            <div class="product-card card h-100">
+              <div class="product-card-img">
+                {% if p.image %}
+                  <img src="{{ p.image.url }}" alt="{{ p.name }}">
+                {% else %}
+                  <div class="product-placeholder">
+                    <i class="bi bi-box-seam"></i>
+                  </div>
+                {% endif %}
+                <span class="badge category-badge">{{ p.category.name }}</span>
+              </div>
+              <div class="card-body d-flex flex-column">
+                <h6 class="product-title">{{ p.name|truncatechars:30 }}</h6>
+                <p class="small text-muted mb-2">
+                  {{ p.short_description|default:"Curated high quality product."|truncatechars:60 }}
+                </p>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="product-price">₹{{ p.price }}</span>
+                  <span class="rating-stars sm" style="--rating: {{ p.rating|default:4.5 }};"></span>
+                </div>
+                <div class="mt-auto d-flex gap-2">
+                  <a href="{% url 'add_to_cart' p.id %}" class="btn btn-soft btn-sm flex-grow-1">
+                    <i class="bi bi-cart-plus me-1"></i>Add to Cart
+                  </a>
+                  <a href="{% url 'product_detail' p.slug %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-muted small">No products yet. Add some in Django admin to populate the grid.</p>
+      {% endif %}
+    </div>
+  </section>
+
+</div>
+
+<!-- RECENTLY VIEWED SECTION -->
+ {% if recently_viewed_products %}
+  <hr class="my-4">
+  <h4 class="section-title mb-3">Recently Viewed</h4>
+  <div class="row g-3">
+    {% for product in recently_viewed_products %}
+      <div class="col-6 col-md-3 col-lg-2">
+        <div class="product-card card h-100">
+          <div class="product-card-img">
+            {% if product.image %}
+              <img src="{{ product.image.url }}" alt="{{ product.name }}">
+            {% else %}
+              <div class="product-placeholder"><i class="bi bi-box-seam"></i></div>
+            {% endif %}
+          </div>
+          <div class="card-body p-2">
+            <h6 class="product-title mb-1 small">{{ product.name|truncatechars:20 }}</h6>
+            <span class="product-price small fw-semibold">₹{{ product.price }}</span>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% endblock %}

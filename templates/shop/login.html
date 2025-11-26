@@ -1,0 +1,78 @@
+{% extends 'shop/base.html' %}
+{% block title %}Login | NeoMart{% endblock %}
+
+{% block content %}
+
+<div class="container" style="min-height: 80vh; padding-top: 120px;">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+
+      <div class="card shadow-sm border-0" style="border-radius: 18px;">
+        <div class="card-body p-4">
+
+          <!-- HEADER -->
+          <div class="text-center mb-3">
+            <div class="avatar-circle lg mb-2">
+              <i class="bi bi-person-check-fill fs-3"></i>
+            </div>
+            <h4 class="fw-bold mb-1">Welcome Back</h4>
+            <p class="text-muted small">Login to continue shopping</p>
+          </div>
+
+          <!-- FORM -->
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger py-2 small">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <!-- Username -->
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">
+                <i class="bi bi-person me-1"></i> Username
+              </label>
+              <input 
+                type="text" 
+                name="username" 
+                class="form-control"
+                placeholder="Enter your username"
+                autocomplete="username"
+                value="{{ form.username.value|default_if_none:'' }}"
+                required>
+            </div>
+
+            <!-- Password -->
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">
+                <i class="bi bi-shield-lock me-1"></i> Password
+              </label>
+              <input 
+                type="password" 
+                name="password" 
+                class="form-control"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+                required>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 mt-2" style="border-radius: 10px;">
+              <i class="bi bi-box-arrow-in-right me-2"></i>Login
+            </button>
+
+          </form>
+
+          <!-- Bottom Link -->
+          <div class="text-center mt-3 small">
+            New to NeoMart?
+            <a href="{% url 'register' %}" class="fw-semibold">Create an account</a>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
